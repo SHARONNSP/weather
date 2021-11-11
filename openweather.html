@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Current Weather</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+	 <script src="https://kit.fontawesome.com/e5cf889f8b.js" crossorigin="anonymous"></script>
+</head>
+<body>
+	<h1 class="text-center">Weather Webstie</h1>
+	<div class="container text-center">
+		<div class="card text-center">
+			<h4>City</h4>
+			<div class="form-row align-items-center py-3 px-3 ">
+				<div class="col-auto">
+					<label class="sr-only" for="inlineFormInput" >City</label>
+					<input type="text" class="form-control mb-2" id="city"placeholder="Enter City">
+				</div>
+				<div class="col-auto">
+					<button type="submit" class="btn btn-primary mb-2" id="searchBtn">Search</button>
+				</div>
+			</div>
+		</div>
+		<div class="card mt-3 py-3 px-3">
+			<table class="table" id="weather-table">
+				<tbody>
+				 <thead>
+				 <tr>
+					<th>Icon</th>
+					<th>Date and Time</th>
+					<th>Weather</th>
+					<th>Temperature</th>
+				 </tr>
+				 </thead>
+				</tbody>
+			</table>
+		</div>
+		<div class="card text-center" hidden="true" id="weather-main">
+			<h3>Weather Information</h3>
+			<p class="text-center"><img id="weatherImage" width="100px"></p>
+			<p id="weather"></p>
+			<p id="temperature"></p>
+			<p id="dateTime"></p>
+			<p id="pressure"></p>
+			<p id="humidity"></p>
+			<div class="row">
+				<div class="col-6">
+					<h3><i class="far fa-sun"></i></h3>
+					<p id="sunrise">
+						
+					</p>
+				</div>
+				<div class="col-6">
+					<h3><i class="fas fa-cloud-moon"></i></h3>
+					<p id="sunset">
+						
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+  	integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+    crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+	<script type="text/javascript">
+		$(function() {
+
+				function processWeather(result){
+					$("#weather-table > tbody").empty()
+					for (var i = 0; i < result.list.length; i++) {
+					var weather = result.list[i]
+					var newTd1 = $("<td>").html(new Date(weather.dt * 1000))
+					var newTd2 = $("<td>").html(weather.weather[0].main)
+					var newTd4 = $("<td>").html((weather.temp.day-273.15).toFixed(2)+ "&deg: C")
+
+					var newImg = $("<img>").attr("src","https://openweathermap.org/img/wn/"+weather.weather[0].icon+"@2x.png")
+					var newTd3 = $("<td>").html(newImg)
+					var newTr = $("<tr>").append(newTd1).append(newTd2).append(newTd3).append(newTd4)
+					newTr.click({weather:weather},function(evt){
+						$("#weather-main").attr("hidden",false)
+						console.log('clicked!')
+						var currentWeather = evt.data.weather;
+						$("#weather").html(currentWeather.weather[0].main)
+						var currentDate = new Date(weather.dt * 1000);
+						$("#dateTime").html(currentDate)
+						$("#temperature").html((currentWeather.temp.day-273.15).toFixed(2)+ "&deg: C");
+						$("#weatherImage").attr("src","https://openweathermap.org/img/wn/"+currentWeather.weather[0].icon+"@2x.png")
+						$("#pressure").html(currentWeather.pressure);
+						$("#humidity").html(currentWeather.humidity);
+						$("#sunrise").html(new Date(currentWeather.sunrise * 1000))
+						$("#sunset").html(new Date(currentWeather.sunset * 1000))
+
+					})
+
+					
+					$("#weather-table > tbody").append(newTr);
+					}
+}
+			if(navigator.geolocation){
+				navigator.geolocation.getCurrentPosition(function(position){
+					console.log(position.coords.latitude)
+					console.log(position.coords.longitude)
+					$.getJSON("https://api.openweathermap.org/data/2.5/forecast/daily?lat="+position.coords.latitude+"&lon="+position.coords.longitude+"&appid=9fd7a449d055dba26a982a3220f32aa2",function(result){
+						console.log(result)
+
+						$("#city").val(result.city.name);
+						processWeather(result)
+				})
+					})
+			}
+			$("#searchBtn").click(function(){
+				
+				var city = $("#city").val()
+				$.getJSON("https://api.openweathermap.org/data/2.5/forecast/daily?q="+city+"&appid=9fd7a449d055dba26a982a3220f32aa2",function(result){
+					console.log(result)
+					processWeather(result)
+
+					
+			})
+			})
+			})
+	</script>
+</body>
+</html>
